@@ -95,7 +95,8 @@ onMounted(async () => {
   <div class="my-container">
 
     <div class="title has-text-centered">
-      AJ todo test
+      AJ todo test <br>
+      {{ $t('regards.hello') }}
     </div>
 
     <form
