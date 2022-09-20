@@ -6,6 +6,8 @@ import {db} from '@/firebase'
 
 //Firebase ref
 const todosCollectionRef = collection(db, 'todos')
+const todosCollectionQuery = query(todosCollectionRef, orderBy('done'))
+
 
 //todos
 const todos = ref([
@@ -71,7 +73,7 @@ onMounted(async () => {
   //   firestoreTodos.push(todo)
   // })
 
-  onSnapshot(collection(db, 'todos'), (querySnapshot) => {
+  onSnapshot(todosCollectionQuery, (querySnapshot) => {
     const firestoreTodos = []
     querySnapshot.forEach((doc) => {
       const todo = {
