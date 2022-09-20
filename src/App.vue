@@ -1,6 +1,11 @@
 <script setup>
-import { ref } from 'vue';
-import { v4 as uuidv4 } from 'uuid'
+import {ref, onMounted} from 'vue';
+
+import {doc, getDoc, getDocs, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, limit} from 'firebase/firestore'
+import {db} from '@/firebase'
+
+//Firebase ref
+const todosCollectionRef = collection(db, 'todos')
 
 //todos
 const todos = ref([
@@ -19,28 +24,67 @@ const todos = ref([
 //addTodo
 const newTodoContent = ref('')
 const addTodo = () => {
-  const newTodo = {
-    id: uuidv4(),
+  // const newTodo = {
+  //   id: uuidv4(),
+  //   content: newTodoContent.value,
+  //   done: false
+  // }
+  // todos.value.unshift(newTodo)
+
+  addDoc(collection(db, 'todos'), {
     content: newTodoContent.value,
-    done: false
-  }
-  todos.value.unshift(newTodo)
-  //console.log('newTodo-> '+newTodo.id,newTodo)
+    done: false,
+    date: Date.now()
+  })
+  //console.log("Document written with ID: ", docRef)
   newTodoContent.value = ''
 }
 
 //deleteTodo
 const deleteTodo = id => {
-  todos.value = todos.value.filter( todo => todo.id !== id)
+
+  //todos.value = todos.value.filter(todo => todo.id !== id)
+  deleteDoc(doc(todosCollectionRef, id))
 }
 
 //toggleTodo
 const toggleDone = id => {
-  const index = todos.value.findIndex( todo => todo.id === id )
-  console.log(index)
-
-  todos.value[index].done = !todos.value[index].done
+  const index = todos.value.findIndex(todo => todo.id === id)
+  const todoRef = doc(todosCollectionRef, id);
+  updateDoc(todoRef, {
+    done: !todos.value[index].done
+  });
 }
+
+//get todos from firestore
+onMounted(async () => {
+
+  // let firestoreTodos = []
+  // const docSnap = await getDocs(collection(db, 'todos'))
+  // docSnap.forEach((doc) => {
+  //   // console.log(doc.id, " => ", doc.data())
+  //   const todo = {
+  //     id: doc.id,
+  //     content : doc.data().content,
+  //     done: doc.data().done
+  //   }
+  //   firestoreTodos.push(todo)
+  // })
+
+  onSnapshot(collection(db, 'todos'), (querySnapshot) => {
+    const firestoreTodos = []
+    querySnapshot.forEach((doc) => {
+      const todo = {
+        id: doc.id,
+        content: doc.data().content,
+        done: doc.data().done
+      }
+      firestoreTodos.push(todo)
+    });
+    todos.value = firestoreTodos
+  });
+
+})
 
 </script>
 
@@ -53,7 +97,7 @@ const toggleDone = id => {
     </div>
 
     <form
-      @submit.prevent="addTodo"
+        @submit.prevent="addTodo"
     >
       <div class="field is-grouped mb-5">
         <p class="control is-expanded">
